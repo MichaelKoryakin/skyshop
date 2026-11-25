@@ -1,5 +1,6 @@
 package org.skypro.skyshop.service;
 
+import org.skypro.skyshop.model.search.SearchResult;
 import org.skypro.skyshop.model.search.Searchable;
 import org.springframework.stereotype.Service;
 
@@ -8,18 +9,20 @@ import java.util.stream.Collectors;
 
 @Service
 public class SearchService {
-    private final Set<Searchable> items = new HashSet<>();
+    private final StorageService storageService;
 
-    public void add(Searchable s) {
-        items.add(s);
+    public SearchService(StorageService storageService) {
+        this.storageService = storageService;
     }
 
-    public Set<Searchable> search(String searchTerm) {
-        if (searchTerm == null || searchTerm.isBlank()) {
+    public Set<SearchResult> search(String pattern) {
+        if (pattern == null || pattern.isBlank()) {
             return Collections.emptySet();
         }
 
-        Comparator<Searchable> comparator = (a, b) -> {
+        String lowerPattern = pattern.toLowerCase();
+
+        Comparator<SearchResult> comparator = (a, b) -> {
             int lenCmp = Integer.compare(b.getName().length(), a.getName().length());
             if (lenCmp != 0) {
                 return lenCmp;
@@ -27,8 +30,14 @@ public class SearchService {
             return a.getName().compareTo(b.getName());
         };
 
-        return items.stream()
-                .filter(s -> s.getSearchTerm().toLowerCase().contains(searchTerm.toLowerCase()))
+        // Собираем все Searchable из хранилища
+        List<Searchable> allItems = new ArrayList<>();
+        allItems.addAll(storageService.getProducts().values());
+        allItems.addAll(storageService.getArticles().values());
+
+        return allItems.stream()
+                .filter(s -> s.getSearchTerm().toLowerCase().contains(lowerPattern))
+                .map(SearchResult::fromSearchable)
                 .collect(Collectors.toCollection(() -> new TreeSet<>(comparator)));
     }
 }

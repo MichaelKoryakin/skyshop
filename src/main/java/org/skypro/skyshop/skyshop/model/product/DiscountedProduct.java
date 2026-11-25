@@ -23,4 +23,9 @@ public class DiscountedProduct extends Product {
     public int getDiscount() {
         return discount;
     }
+
+    @Override
+    public boolean isSpecial() {
+        return true;
+    }
 }

@@ -8,11 +8,6 @@ public class FixPriceProduct extends Product {
     }
 
     @Override
-    public int getPrice() {
-        return FIXED_PRICE;
-    }
-
-    @Override
     public boolean isSpecial() {
         return true;
     }
